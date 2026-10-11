@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Школьный ящик жалоб</title>
+<style>
+:root{--bg:#f3f4fb;--card:#fff;--tx:#1b2033;--mut:#6a7288;--ac:#5b4bff;--ac2:#ff5fa2;--acx:#fff;--bd:#e5e8f2;--soft:#f0f1fb;--warn:#fff4d6;--sh:0 4px 18px rgba(40,40,90,.08);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10121a;--card:#1a1e2b;--tx:#eef0f8;--mut:#9aa3ba;--ac:#8b82ff;--acx:#10121a;--bd:#2a3043;--soft:#232839;--warn:#2b2713;--sh:none}}
+:root[data-theme="dark"]{--bg:#10121a;--card:#1a1e2b;--tx:#eef0f8;--mut:#9aa3ba;--ac:#8b82ff;--acx:#10121a;--bd:#2a3043;--soft:#232839;--warn:#2b2713;--sh:none}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 -apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.w{max-width:680px;margin:0 auto;padding:16px 14px 40px}
+.hero{background:linear-gradient(135deg,#5b4bff,#ff5fa2);color:#fff;border-radius:22px;padding:24px 20px;box-shadow:var(--sh)}
+.hero h1{font-size:26px;line-height:1.2;margin:0 0 10px}
+.hero p{margin:0 0 14px;font-size:16px;opacity:.95}
+.steps{display:flex;flex-wrap:wrap;gap:8px}
+.steps span{background:rgba(255,255,255,.2);border-radius:20px;padding:5px 12px;font-size:13px;font-weight:600}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px;margin-top:14px;box-shadow:var(--sh)}
+.rule{background:var(--warn);font-size:14px;box-shadow:none}
+.card h2{font-size:18px;margin:0 0 10px}
+select,textarea,button{font:inherit;width:100%;border-radius:12px;border:1px solid var(--bd);background:var(--soft);color:var(--tx);padding:12px}
+textarea{min-height:120px;resize:vertical;margin-top:10px}
+button{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border:0;font-weight:700;margin-top:10px;cursor:pointer;padding:13px}
+button:disabled{opacity:.5}
+.row{display:flex;justify-content:space-between;gap:8px;color:var(--mut);font-size:13px;margin-top:6px}
+.head{display:flex;justify-content:space-between;align-items:center;margin:22px 4px 0}
+.head h2{margin:0;font-size:19px}
+.cnt{background:var(--soft);border-radius:20px;padding:3px 12px;font-size:13px;color:var(--mut);font-weight:600}
+.c{border-left:5px solid var(--ac)}
+.tag{display:inline-block;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700;color:#fff;background:var(--ac)}
+.txt{margin:10px 0 8px;white-space:pre-wrap;overflow-wrap:anywhere}
+.meta{display:flex;justify-content:space-between;align-items:center;color:var(--mut);font-size:12px;gap:8px}
+.del{width:auto;background:transparent;color:#d33;border:1px solid var(--bd);padding:2px 10px;font-size:12px;margin:0}
+.msg{color:var(--mut);text-align:center;padding:24px 8px}
+.ad{text-align:center;font-size:14px;background:linear-gradient(135deg,rgba(91,75,255,.1),rgba(255,95,162,.1))}
+.ad a{display:inline-block;margin-top:6px;color:var(--ac);font-weight:700;font-size:17px;text-decoration:none}
+</style></head><body><div class="w">
+
+<div class="hero">
+  <h1>📢 Школьный ящик жалоб</h1>
+  <p>Этот сайт сделан для школьников, чтобы вы могли смело писать свои жалобы и быть услышанными. Никто не узнает, что это ты.</p>
+  <div class="steps"><span>✍️ Напиши анонимно</span><span>👀 Увидят все</span><span>🗑 Удалится через 30 дней</span></div>
+</div>
+
+<div class="card rule">⚠️ Пиши про проблему, а не про людей: без оскорблений и без имён учеников. Так жалобу заметят и решат.</div>
+
+<div class="card" id="formCard">
+  <h2>Новая жалоба</h2>
+  <select id="cat"></select>
+  <textarea id="txt" maxlength="1000" placeholder="Что случилось? Опиши подробно…"></textarea>
+  <div class="row"><span id="err"></span><span id="cnt">0/1000</span></div>
+  <button id="send">Отправить анонимно</button>
+</div>
+
+<div class="head"><h2>Жалобы школьников</h2><span class="cnt" id="total">0</span></div>
+<div id="list"><div class="msg">Загрузка…</div></div>
+
+<div class="card ad">
+  💻 Этот сайт сделал <b>Аскар Назарзан</b> — веб-разработчик<br>
+  Нужен сайт? Звони:<br>
+  <a href="tel:+77005740017">📞 8 700 574 0017</a>
+</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const DAY=86400000,TTL=30*DAY;
+const CATS={"Учителя и уроки":["📚","#5b4bff"],"Столовая":["🍽","#f59e0b"],"Туалеты и здание":["🚽","#0ea5a4"],"Буллинг / обиды":["💔","#e11d48"],"Расписание и нагрузка":["⏰","#2563eb"],"Другое":["💬","#7c3aed"]};
+Object.keys(CATS).forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=CATS[k][0]+" "+k;$("cat").append(o)});
+let db=null,isAdmin=false,canWrite=false,items=[];const killed=new Set();
+function fmt(t){try{return new Date(t).toLocaleString("ru-RU",{day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"})}catch(e){return""}}
+function render(){
+  const box=$("list");box.textContent="";$("total").textContent=items.length;
+  if(!items.length){const m=document.createElement("div");m.className="msg";m.textContent="Пока жалоб нет. Будь первым! 🙌";box.append(m);return}
+  const now=Date.now();
+  items.forEach(it=>{
+    const col=(CATS[it.cat]||CATS["Другое"]);
+    const c=document.createElement("div");c.className="card c";c.style.borderLeftColor=col[1];
+    const tag=document.createElement("span");tag.className="tag";tag.style.background=col[1];tag.textContent=col[0]+" "+(it.cat||"Другое");
+    const p=document.createElement("div");p.className="txt";p.textContent=it.text||"";
+    const m=document.createElement("div");m.className="meta";
+    const left=document.createElement("span");
+    const left_days=Math.max(1,Math.ceil((TTL-(now-(it.createdAt||now)))/DAY));
+    left.textContent=fmt(it.createdAt)+" · удалится через "+left_days+" дн.";
+    m.append(left);
+    if(isAdmin){const b=document.createElement("button");b.className="del";b.textContent="Удалить";
+      b.onclick=async()=>{if(confirm("Удалить эту жалобу?")){try{await db.collection("complaints").doc(it.id).delete()}catch(e){}}};
+      m.append(b)}
+    c.append(tag,p,m);box.append(c);
+  });
+}
+$("txt").addEventListener("input",()=>{$("cnt").textContent=$("txt").value.length+"/1000"});
+$("send").onclick=async()=>{
+  const text=$("txt").value.trim();$("err").textContent="";
+  if(text.length<10){$("err").textContent="Напиши хотя бы 10 символов";return}
+  $("send").disabled=true;
+  try{
+    const id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+    await db.collection("complaints").doc(id).set({text,cat:$("cat").value,createdAt:Date.now()});
+    $("txt").value="";$("cnt").textContent="0/1000";$("err").textContent="✅ Отправлено";
+  }catch(e){$("err").textContent="Не удалось отправить. Попробуй ещё раз."}
+  $("send").disabled=false;
+};
+(async function init(){
+  let user=null;
+  try{if(window.claude&&claude.use){user=await claude.use("user");db=await claude.use("db")}}catch(e){}
+  if(!db){$("formCard").style.display="none";$("list").innerHTML='<div class="msg">Жалобы доступны после входа в аккаунт.</div>';return}
+  canWrite=true;
+  try{
+    if(user){isAdmin=!!(await user.canEdit());
+      const w=await user.can("data.write");if(w===false){canWrite=false;$("formCard").style.display="none"}}
+  }catch(e){}
+  try{
+    db.collection("complaints").onSnapshot(snap=>{
+      const now=Date.now();
+      const all=snap.docs.map(d=>Object.assign({id:d.id},d.data()));
+      items=all.filter(i=>now-(i.createdAt||0)<TTL).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+      if(canWrite)all.filter(i=>now-(i.createdAt||0)>=TTL&&!killed.has(i.id)).forEach(i=>{killed.add(i.id);db.collection("complaints").doc(i.id).delete().catch(()=>{})});
+      render();
+    },()=>{$("list").innerHTML='<div class="msg">Не удалось загрузить жалобы.</div>'});
+  }catch(e){$("list").innerHTML='<div class="msg">Не удалось загрузить жалобы.</div>'}
+})();
+</script></body></html>
